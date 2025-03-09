@@ -1,16 +1,31 @@
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import LabelEncoder, StandardScaler
-from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score
+from sklearn.preprocessing import LabelEncoder, StandardScaler, OneHotEncoder
+from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_selection import SequentialFeatureSelector
-from imblearn.over_sampling import RandomOverSampler
+from sklearn.compose import make_column_transformer
+from sklearn.linear_model import LogisticRegression
+from imblearn.over_sampling import SMOTE
 from imblearn.under_sampling import RandomUnderSampler
 import os
 import random
 import gc
 import time
-from sklearn.compose import make_column_transformer
+import cloudpickle
+import kagglehub
+import shutil
+
+def download_dataset():
+    asteroid_dataset_path = kagglehub.dataset_download('sakhawat18/asteroid-dataset')
+
+    target_dir = "./dataset/"
+    file_names = os.listdir(asteroid_dataset_path)
+    for file_name in file_names:
+        shutil.move(os.path.join(asteroid_dataset_path, file_name), target_dir)
+        
+    print("Data source import complete.")
+    return
 
 def get_outliers(df, col, tipo="leve"):
   Q1 = df[col].quantile(0.25)
@@ -30,8 +45,10 @@ np.random.seed(seed_value)
 source_path = "./dataset/"
 dest_path = "./model/"
 
-df_asteroids = pd.read_csv(source_path+"asteroid_dataset.csv", engine='c', low_memory=False, index_col="id")
-df_asteroids = df_asteroids[["pha", "moid", "n", "e", "H", "diametro", "ma", "tp", "rms", "i", "spkid", "om", "epoch", "w"]]
+download_dataset()
+
+df_asteroids = pd.read_csv(source_path+"dataset.csv", engine='c', low_memory=False, index_col="id")
+df_asteroids = df_asteroids[["pha", "neo", "class", "sigma_w", "per", "a", "moid", "n", "e", "H", "ma", "tp", "rms", "i", "spkid", "om", "epoch", "w"]]
 
 df_asteroids = df_asteroids[~df_asteroids["pha"].isna()]
 
@@ -48,12 +65,23 @@ df_asteroids.drop(H_outliers.index, axis=0, inplace=True)
 moid_outliers = get_outliers(df_asteroids, "moid", "extremos")
 df_asteroids.drop(moid_outliers.index, axis=0, inplace=True)
 
+per_outliers = get_outliers(df_asteroids, "per", "extremos")
+df_asteroids.drop(per_outliers.index, axis=0, inplace=True)
+
+a_outliers = get_outliers(df_asteroids, "a", "extremos")
+df_asteroids.drop(a_outliers.index, axis=0, inplace=True)
+
+sigw_outliers = get_outliers(df_asteroids, "sigma_w", "extremos")
+df_asteroids.drop(sigw_outliers.index, axis=0, inplace=True)
+
 albedo = 0.0615
 df_asteroids["diametro"] = (1329/albedo)*np.power(10, -0.4*df_asteroids["H"])
-df_asteroids[["diametro"]]
 
-X = df_asteroids_.drop(["pha"], axis=1)
-y = df_asteroids_["pha"]
+df_asteroids = df_asteroids[["pha", "neo", "class", "moid", "n", "e", "H", "ma", "tp", "rms", "i", "spkid", "om", "epoch", "w"]]
+
+
+X = df_asteroids.drop(["pha"], axis=1)
+y = df_asteroids["pha"]
 
 X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.30, stratify=y, random_state=seed_value)
 X_val, X_test, y_val, y_test = train_test_split(X_val, y_val, test_size=0.25, stratify=y_val, random_state=seed_value)
@@ -90,6 +118,8 @@ X_train, y_train = oversample.fit_resample(X_train, y_train)
 
 undersample = RandomUnderSampler(random_state=42)
 X_train, y_train = undersample.fit_resample(X_train, y_train)
+
+print(X_train.columns)
 
 sfs_forward = SequentialFeatureSelector(estimator=LogisticRegression(),
                                         n_features_to_select=12,
