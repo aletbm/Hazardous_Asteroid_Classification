@@ -2,6 +2,8 @@
 
 <img src="https://i.postimg.cc/76MpGPhY/unnamed-1.png">
 
+<a href="https://www.kaggle.com/code/aletbm/hazardous-asteroid-classification?scriptVersionId=226148601" target="_blank"><img align="left" alt="Kaggle" title="Open in Kaggle" src="https://kaggle.com/static/images/open-in-kaggle.svg"></a><a href="https://colab.research.google.com/github/aletbm/Hazardous_Asteroid_Classification/blob/main/analysis/Hazardous_Asteroid_Classification_RiosAlexanderDaniel.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a><a href="https://hazardousasteroidclassification.streamlit.app" target="_parent"><img src="https://static.streamlit.io/badges/streamlit_badge_black_white.svg" alt="Streamlit App"/></a>
+
 # Abstract
 
 The ***problem*** we address is identifying potentially hazardous asteroids for planet Earth. The scope of this project can be interesting for various entities, ranging from astronomical research centers to aerospace agencies.
@@ -107,6 +109,76 @@ It can be used in Machine Learning projects for both classification and regressi
 | class | Orbit classification |
 | rms | Normalized orbit fit RMS (arcsec) |
 
+## Dataset analysis and Training models
+
+The dataset analysis and the models training were conducted in Jupyter Notebook. You can find this file in this [repository folder](https://github.com/aletbm/Hazardous_Asteroid_Classification/tree/main/analysis).
+
+The training script for the selected model is available in this [repository file](https://github.com/aletbm/Hazardous_Asteroid_Classification/tree/main/model).
+
+The pipeline to preprocess the dataset, along with the label encoder and the final model, was exported to a file named [HAP-model.bin](https://github.com/aletbm/Hazardous_Asteroid_Classification/blob/main/model/HAP_model.bin)
+
+## Running the project locally
+
+### Using Flask
+
+The script to deploy the model using Flask is [predict.py](https://github.com/aletbm/Hazardous_Asteroid_Classification/tree/main/scripts/predict.py).
+
+[Pipfile](https://github.com/aletbm/Hazardous_Asteroid_Classification/tree/main/Pipfile) and [Pipfile.lock](https://github.com/aletbm/Hazardous_Asteroid_Classification/tree/main/Pipfile.lock) set up the Pipenv environment. 
+
+First, you need to install from [Pipfile](https://github.com/aletbm/MySolutions_MLZoomcamp2024_DataTalks.Club/blob/main/Estimation_Obesity_Levels_midterm_project/Pipfile):
+```
+pipenv install
+```
+The virtual environment can be activated by running
+```
+pipenv shell
+```
+Once in the virtual enviroment, you can run the following commands:
+```
+cd scripts
+python predict.py
+```
+You can test the model by running:
+```
+python scripts/test.py
+```
+Don't forget to update the `url` variable in the [test.py](https://github.com/aletbm/Hazardous_Asteroid_Classification/tree/main/scripts/test.py) file to:
+```
+url = "http://localhost:9696/predict"
+```
+### Using Waitress as WSGI server
+
+Once in the virtual enviroment, you can run the following commands:
+```
+cd scripts
+waitress-serve --listen=0.0.0.0:9696 predict:app
+```
+You can test the model by running:
+```
+python scripts/test.py
+```
+Don't forget to update the `url` variable in the [test.py](https://github.com/aletbm/Hazardous_Asteroid_Classification/tree/main/scripts/test.py) file to:
+```
+url = "http://localhost:9696/predict"
+```
+
+### Local deployment with Docker
+
+[Dockerfile](https://github.com/aletbm/Hazardous_Asteroid_Classification/tree/main/Dockerfile) contain the Docker instructions.
+
+To build the container, you can run the following command:
+```
+docker build -t pha-model .   
+```
+To run it:
+```
+docker run -p 9696:9696 -it pha-model:latest
+```
+
 # Visualizations with Poliastro
 ![Asteroids](./src/asteroids.gif)
 
+# Streamlit app
+![app](./src/screenshot.png)
+
+Here’s the link to my [Streamlit App](https://hazardousasteroidclassification.streamlit.app).
