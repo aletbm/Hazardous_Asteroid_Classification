@@ -176,9 +176,11 @@ docker run -p 9696:9696 -it pha-model:latest
 ```
 
 # Visualizations with Poliastro
+
 ![Asteroids](./src/asteroids.gif)
 
 # Streamlit app
-![app](./src/screenshot.png)
+
+https://github.com/user-attachments/assets/1b7de707-249a-4f70-92df-c8d44168ced9
 
 Here’s the link to my [Streamlit App](https://hazardousasteroidclassification.streamlit.app).
